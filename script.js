@@ -1,7 +1,12 @@
+// State Aplikasi
+let currentUser = null;
+let isKYCVerified = false;
+let balance = 0;
+
 // Data User Demo (simulasi akun yang dibuat admin)
 const demoUsers = {
-    'dzalstore': {  // Diubah dari 'admin' menjadi 'dzalstore'
-        password: '123456',  // Diubah dari 'admin123' menjadi '123456'
+    'dzalstore': {
+        password: '123456',
         name: 'Dzal Store Admin',
         kycStatus: true,
         balance: 1000000,
@@ -29,6 +34,7 @@ const demoUsers = {
         role: 'user'
     }
 };
+
 // Database Transaksi (untuk simulasi)
 let transactions = [
     {
@@ -43,7 +49,7 @@ let transactions = [
     },
     {
         id: 'TRX002',
-        from: 'dzalstore',  // Diubah dari 'admin'
+        from: 'dzalstore',
         to: 'user2',
         amount: 100000,
         type: 'topup',
@@ -51,6 +57,7 @@ let transactions = [
         date: '2026-02-17 14:20'
     }
 ];
+
 // Database Permintaan (pending requests)
 let pendingKYC = [];
 let pendingTopUp = [];
@@ -149,7 +156,7 @@ function updateDashboard() {
     // Update status KYC berdasarkan role
     if (demoUsers[currentUser].role === 'admin') {
         kycStatus.className = 'kyc-status success';
-        kycStatusText.textContent = '👑 Admin Dashboard';
+        kycStatusText.textContent = '👑 Admin Dzal Store';
     } else {
         if (isKYCVerified) {
             kycStatus.className = 'kyc-status success';
@@ -338,7 +345,7 @@ function showTopUpForm() {
                 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Kirim Bukti Pembayaran</button>
-                    <button type="button" class="btn-secondary" onclick="dynamicContent.innerHTML=''">Batal</button>
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('dynamicContent').innerHTML=''">Batal</button>
                 </div>
             </form>
             
@@ -395,7 +402,7 @@ function showTransferForm() {
     const user = demoUsers[currentUser];
     
     if (user.role === 'admin') {
-        showAdminTransferPanel();
+        showAdminPanel();
         return;
     }
     
@@ -447,14 +454,14 @@ function showTransferForm() {
                 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">Kirim Permintaan Transfer</button>
-                    <button type="button" class="btn-secondary" onclick="dynamicContent.innerHTML=''">Batal</button>
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('dynamicContent').innerHTML=''">Batal</button>
                 </div>
             </form>
             
             <div style="margin-top: 15px; font-size: 12px; color: #666; background: #f0f0f0; padding: 10px; border-radius: 8px;">
                 <p>📌 Catatan Penting:</p>
                 <ul style="margin-left: 20px;">
-                    <li>Transfer akan diproses setelah diverifikasi admin</p>
+                    <li>Transfer akan diproses setelah diverifikasi admin</li>
                     <li>Pastikan saldo mencukupi sebelum transfer</li>
                     <li>Bukti transfer akan dicek oleh admin</li>
                     <li>Dana akan dipotong dari saldo Anda setelah diverifikasi</li>
@@ -481,6 +488,11 @@ function showTransferForm() {
         const recipient = document.getElementById('recipient').value;
         const amount = parseInt(document.getElementById('transferAmount').value);
         const notes = document.getElementById('transferNotes').value;
+        
+        if (!recipient) {
+            showNotification('Pilih tujuan transfer!', 'warning');
+            return;
+        }
         
         // Validasi saldo
         if (amount > balance) {
@@ -511,82 +523,117 @@ function showTransferForm() {
     });
 }
 
-// Panel Admin untuk Verifikasi Transfer
-function showAdminTransferPanel() {
-    const pendingList = pendingTransfers.map(t => `
-        <tr>
-            <td>${t.id}</td>
-            <td>${t.from}</td>
-            <td>${t.to}</td>
-            <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-            <td>${t.submittedAt}</td>
-            <td>
-                <button class="btn-small" onclick="verifyTransfer('${t.id}', true)">✓ Setuju</button>
-                <button class="btn-small" style="background: #ff4757;" onclick="verifyTransfer('${t.id}', false)">✕ Tolak</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    const completedList = transactions.filter(t => t.type === 'transfer').map(t => `
-        <tr>
-            <td>${t.id}</td>
-            <td>${t.from}</td>
-            <td>${t.to}</td>
-            <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-            <td><span class="badge success">Selesai</span></td>
-            <td>${t.date}</td>
-        </tr>
-    `).join('');
-    
-    dynamicContent.innerHTML = `
-        <div class="content-card">
-            <h3>Verifikasi Transfer</h3>
-            
-            <h4>⏳ Permintaan Pending (${pendingTransfers.length})</h4>
-            ${pendingTransfers.length > 0 ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Dari</th>
-                            <th>Ke</th>
-                            <th>Jumlah</th>
-                            <th>Waktu</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${pendingList}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; padding: 20px;">Tidak ada permintaan transfer pending</p>'}
-            
-            <h4 style="margin-top: 30px;">✅ Riwayat Transfer</h4>
-            ${completedList ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Dari</th>
-                            <th>Ke</th>
-                            <th>Jumlah</th>
-                            <th>Status</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${completedList}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; padding: 20px;">Belum ada transfer</p>'}
-        </div>
-    `;
-}
+// ============================================
+// FUNGSI VERIFIKASI UNTUK ADMIN (CENTANG / SILANG)
+// ============================================
 
-// Verifikasi Transfer (dipanggil dari admin panel)
+// Verifikasi KYC
+window.verifyKYC = function(username, approve) {
+    console.log('Verifying KYC for:', username, 'Approve:', approve);
+    
+    // Cari index permintaan KYC
+    const kycIndex = pendingKYC.findIndex(k => k.username === username);
+    
+    if (kycIndex === -1) {
+        showNotification('Data KYC tidak ditemukan!', 'warning');
+        return;
+    }
+    
+    const kycData = pendingKYC[kycIndex];
+    
+    if (approve) {
+        // Setujui KYC
+        if (demoUsers[username]) {
+            demoUsers[username].kycStatus = true;
+            showNotification(`✅ KYC untuk ${username} (${kycData.name}) telah DISETUJUI`, 'success');
+            
+            // Catat ke transaksi
+            transactions.push({
+                id: 'KYC' + Date.now(),
+                type: 'kyc',
+                username: username,
+                status: 'approved',
+                date: new Date().toLocaleString()
+            });
+        } else {
+            showNotification(`User ${username} tidak ditemukan!`, 'warning');
+            return;
+        }
+    } else {
+        // Tolak KYC
+        showNotification(`❌ KYC untuk ${username} (${kycData.name}) telah DITOLAK`, 'info');
+    }
+    
+    // Hapus dari daftar pending
+    pendingKYC.splice(kycIndex, 1);
+    
+    // Refresh panel admin
+    showAdminPanel();
+    
+    // Update dashboard jika user yang sedang login adalah yang bersangkutan
+    if (currentUser === username) {
+        isKYCVerified = demoUsers[username].kycStatus;
+        updateDashboard();
+    }
+};
+
+// Verifikasi Top Up
+window.verifyTopUp = function(topupId, approve) {
+    console.log('Verifying Top Up:', topupId, 'Approve:', approve);
+    
+    const topupIndex = pendingTopUp.findIndex(t => t.id === topupId);
+    if (topupIndex === -1) {
+        showNotification('Data top up tidak ditemukan!', 'warning');
+        return;
+    }
+    
+    const topup = pendingTopUp[topupIndex];
+    
+    if (approve) {
+        // Top up disetujui
+        if (demoUsers[topup.username]) {
+            demoUsers[topup.username].balance += topup.amount;
+            
+            transactions.push({
+                id: topup.id,
+                to: topup.username,
+                amount: topup.amount,
+                type: 'topup',
+                status: 'completed',
+                date: new Date().toLocaleString(),
+                notes: topup.notes
+            });
+            
+            showNotification(`✅ Top up Rp ${topup.amount.toLocaleString('id-ID')} untuk ${topup.username} DISETUJUI`, 'success');
+        } else {
+            showNotification(`User ${topup.username} tidak ditemukan!`, 'warning');
+            return;
+        }
+    } else {
+        // Top up ditolak
+        showNotification(`❌ Top up untuk ${topup.username} DITOLAK`, 'info');
+    }
+    
+    pendingTopUp.splice(topupIndex, 1);
+    
+    // Update dashboard jika user yang sedang login adalah yang bersangkutan
+    if (currentUser === topup.username) {
+        balance = demoUsers[currentUser].balance;
+        updateDashboard();
+    }
+    
+    showAdminPanel();
+};
+
+// Verifikasi Transfer
 window.verifyTransfer = function(transferId, approve) {
+    console.log('Verifying Transfer:', transferId, 'Approve:', approve);
+    
     const transferIndex = pendingTransfers.findIndex(t => t.id === transferId);
-    if (transferIndex === -1) return;
+    if (transferIndex === -1) {
+        showNotification('Data transfer tidak ditemukan!', 'warning');
+        return;
+    }
     
     const transfer = pendingTransfers[transferIndex];
     
@@ -594,6 +641,11 @@ window.verifyTransfer = function(transferId, approve) {
         // Transfer disetujui
         const fromUser = demoUsers[transfer.from];
         const toUser = demoUsers[transfer.to];
+        
+        if (!fromUser || !toUser) {
+            showNotification('User pengirim atau penerima tidak ditemukan!', 'warning');
+            return;
+        }
         
         // Validasi saldo masih cukup
         if (fromUser.balance < transfer.amount) {
@@ -617,79 +669,50 @@ window.verifyTransfer = function(transferId, approve) {
             notes: transfer.notes
         });
         
-        showNotification(`Transfer Rp ${transfer.amount.toLocaleString('id-ID')} disetujui`, 'success');
+        showNotification(`✅ Transfer Rp ${transfer.amount.toLocaleString('id-ID')} dari ${transfer.from} ke ${transfer.to} DISETUJUI`, 'success');
+        
+        // Update dashboard jika yang login adalah pengirim atau penerima
+        if (currentUser === transfer.from || currentUser === transfer.to) {
+            balance = demoUsers[currentUser].balance;
+            updateDashboard();
+        }
     } else {
         // Transfer ditolak, kembalikan saldo
         const fromUser = demoUsers[transfer.from];
-        fromUser.balance += transfer.amount;
-        
-        showNotification(`Transfer ditolak, saldo dikembalikan ke ${transfer.from}`, 'info');
+        if (fromUser) {
+            fromUser.balance += transfer.amount;
+            showNotification(`❌ Transfer ditolak, saldo dikembalikan ke ${transfer.from}`, 'info');
+            
+            if (currentUser === transfer.from) {
+                balance = fromUser.balance;
+                updateDashboard();
+            }
+        }
     }
     
     // Hapus dari pending
     pendingTransfers.splice(transferIndex, 1);
     
     // Refresh panel
-    showAdminTransferPanel();
+    showAdminPanel();
 };
 
-// Tampilkan Panel Admin Lengkap
+// ============================================
+// PANEL ADMIN LENGKAP
+// ============================================
+
+// Tampilkan Panel Admin
 function showAdminPanel() {
     // Hitung statistik
     const totalUsers = Object.keys(demoUsers).length;
-    const pendingKYC = pendingKYC.length;
+    const pendingKYCCount = pendingKYC.length;
     const pendingTopUpCount = pendingTopUp.length;
     const pendingTransferCount = pendingTransfers.length;
     const totalBalance = Object.values(demoUsers).reduce((sum, user) => sum + user.balance, 0);
     
-    // Daftar user
-    const userList = Object.entries(demoUsers)
-        .filter(([username, user]) => user.role === 'user')
-        .map(([username, user]) => `
-            <tr>
-                <td>${username}</td>
-                <td>${user.name}</td>
-                <td>Rp ${user.balance.toLocaleString('id-ID')}</td>
-                <td>${user.kycStatus ? '<span class="badge success">Verified</span>' : '<span class="badge warning">Pending</span>'}</td>
-                <td>
-                    <button class="btn-small" onclick="showUserDetail('${username}')">Detail</button>
-                    <button class="btn-small" onclick="addSaldo('${username}')">Tambah Saldo</button>
-                </td>
-            </tr>
-        `).join('');
-    
-    // Daftar pending KYC
-    const kycList = pendingKYC.map(k => `
-        <tr>
-            <td>${k.username}</td>
-            <td>${k.name}</td>
-            <td>${k.nik}</td>
-            <td>${k.submittedAt}</td>
-            <td>
-                <button class="btn-small" onclick="verifyKYC('${k.username}', true)">✓ Setuju</button>
-                <button class="btn-small" style="background: #ff4757;" onclick="verifyKYC('${k.username}', false)">✕ Tolak</button>
-            </td>
-        </tr>
-    `).join('');
-    
-    // Daftar pending top up
-    const topupList = pendingTopUp.map(t => `
-        <tr>
-            <td>${t.id}</td>
-            <td>${t.username}</td>
-            <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-            <td>${t.notes || '-'}</td>
-            <td>${t.submittedAt}</td>
-            <td>
-                <button class="btn-small" onclick="verifyTopUp('${t.id}', true)">✓ Setuju</button>
-                <button class="btn-small" style="background: #ff4757;" onclick="verifyTopUp('${t.id}', false)">✕ Tolak</button>
-            </td>
-        </tr>
-    `).join('');
-    
     dynamicContent.innerHTML = `
         <div class="content-card">
-            <h3>👑 Panel Admin Dzal Wallet</h3>
+            <h3>👑 Admin Dzal Store</h3>
             
             <!-- Statistik -->
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0;">
@@ -699,8 +722,8 @@ function showAdminPanel() {
                     <div style="font-size: 11px;">Total Users</div>
                 </div>
                 <div style="background: #fff3cd; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 20px;">⏳</div>
-                    <div style="font-weight: bold;">${pendingKYC}</div>
+                    <div style="font-size: 20px;">📝</div>
+                    <div style="font-weight: bold;">${pendingKYCCount}</div>
                     <div style="font-size: 11px;">Pending KYC</div>
                 </div>
                 <div style="background: #f8d7da; padding: 15px; border-radius: 8px; text-align: center;">
@@ -719,44 +742,31 @@ function showAdminPanel() {
             <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <h4>➕ Buat Akun User Baru</h4>
                 <form id="createUserForm" style="display: grid; gap: 10px; margin-top: 10px;">
-                    <input type="text" id="newUsername" placeholder="Username" style="padding: 8px;">
-                    <input type="password" id="newPassword" placeholder="Password" style="padding: 8px;">
-                    <input type="text" id="newName" placeholder="Nama Lengkap" style="padding: 8px;">
+                    <input type="text" id="newUsername" placeholder="Username" style="padding: 8px;" required>
+                    <input type="password" id="newPassword" placeholder="Password" style="padding: 8px;" required>
+                    <input type="text" id="newName" placeholder="Nama Lengkap" style="padding: 8px;" required>
                     <button type="submit" class="btn-primary" style="padding: 8px;">Buat Akun</button>
                 </form>
             </div>
             
             <!-- Tab Navigation -->
-            <div style="display: flex; gap: 5px; margin: 20px 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">
-                <button class="btn-small" onclick="showAdminTab('users')">📋 Users</button>
-                <button class="btn-small" onclick="showAdminTab('kyc')">📝 KYC (${pendingKYC})</button>
+            <div style="display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; flex-wrap: wrap;">
+                <button class="btn-small" onclick="showAdminTab('kyc')">📝 KYC (${pendingKYCCount})</button>
                 <button class="btn-small" onclick="showAdminTab('topup')">💰 Top Up (${pendingTopUpCount})</button>
                 <button class="btn-small" onclick="showAdminTab('transfer')">↔️ Transfer (${pendingTransferCount})</button>
+                <button class="btn-small" onclick="showAdminTab('users')">📋 Semua User</button>
+                <button class="btn-small" onclick="showAdminTab('history')">📊 Riwayat</button>
             </div>
             
-            <!-- Konten Tab (default users) -->
+            <!-- Konten Tab (default KYC) -->
             <div id="adminTabContent">
-                <h4>📋 Daftar User</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Nama</th>
-                            <th>Saldo</th>
-                            <th>KYC</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${userList}
-                    </tbody>
-                </table>
+                ${generateKYCTab()}
             </div>
         </div>
     `;
     
     // Handle form create user
-    document.getElementById('createUserForm')?.addEventListener('submit', (e) => {
+    document.getElementById('createUserForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const newUsername = document.getElementById('newUsername').value.trim();
@@ -764,11 +774,13 @@ function showAdminPanel() {
         const newName = document.getElementById('newName').value.trim();
         
         if (newUsername && newPassword && newName) {
+            // Cek apakah username sudah ada
             if (demoUsers.hasOwnProperty(newUsername)) {
                 showNotification('Username sudah digunakan!', 'warning');
                 return;
             }
             
+            // Tambah user baru
             demoUsers[newUsername] = {
                 password: newPassword,
                 name: newName,
@@ -777,331 +789,358 @@ function showAdminPanel() {
                 role: 'user'
             };
             
-            showNotification(`Akun user "${newUsername}" berhasil dibuat!`, 'success');
-            showAdminPanel(); // Refresh
+            showNotification(`✅ Akun user "${newUsername}" berhasil dibuat!`, 'success');
+            
+            // Reset form
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('newName').value = '';
+            
+            // Refresh panel admin
+            showAdminPanel();
         } else {
             showNotification('Semua field harus diisi!', 'warning');
         }
     });
 }
 
-// Fungsi untuk tab admin
-window.showAdminTab = function(tab) {
-    const tabContent = document.getElementById('adminTabContent');
-    
-    if (tab === 'users') {
-        const userList = Object.entries(demoUsers)
-            .filter(([username, user]) => user.role === 'user')
-            .map(([username, user]) => `
-                <tr>
-                    <td>${username}</td>
-                    <td>${user.name}</td>
-                    <td>Rp ${user.balance.toLocaleString('id-ID')}</td>
-                    <td>${user.kycStatus ? '<span class="badge success">Verified</span>' : '<span class="badge warning">Pending</span>'}</td>
-                    <td>
-                        <button class="btn-small" onclick="showUserDetail('${username}')">Detail</button>
-                        <button class="btn-small" onclick="addSaldo('${username}')">Tambah Saldo</button>
-                    </td>
-                </tr>
-            `).join('');
-        
-        tabContent.innerHTML = `
-            <h4>📋 Daftar User</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Nama</th>
-                        <th>Saldo</th>
-                        <th>KYC</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${userList || '<tr><td colspan="5" style="text-align: center;">Tidak ada user</td></tr>'}
-                </tbody>
-            </table>
-        `;
+// Generate Tab KYC
+function generateKYCTab() {
+    if (pendingKYC.length === 0) {
+        return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan KYC</p>';
     }
     
-    else if (tab === 'kyc') {
-        const kycList = pendingKYC.map(k => `
+    let html = `
+        <h4>📝 Permintaan Verifikasi KYC (${pendingKYC.length})</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Nama</th>
+                    <th>NIK</th>
+                    <th>Alamat</th>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    pendingKYC.forEach(k => {
+        html += `
             <tr>
                 <td>${k.username}</td>
                 <td>${k.name}</td>
                 <td>${k.nik}</td>
+                <td>${k.address.substring(0, 20)}...</td>
                 <td>${k.submittedAt}</td>
                 <td>
-                    <button class="btn-small" onclick="verifyKYC('${k.username}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="verifyKYC('${k.username}', false)">✕ Tolak</button>
+                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyKYC('${k.username}', true)">✓ Setuju</button>
+                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyKYC('${k.username}', false)">✕ Tolak</button>
                 </td>
             </tr>
-        `).join('');
-        
-        tabContent.innerHTML = `
-            <h4>📝 Permintaan Verifikasi KYC (${pendingKYC.length})</h4>
-            ${pendingKYC.length > 0 ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Nama</th>
-                            <th>NIK</th>
-                            <th>Waktu</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${kycList}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; padding: 20px;">Tidak ada permintaan KYC</p>'}
         `;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+// Generate Tab Top Up
+function generateTopUpTab() {
+    if (pendingTopUp.length === 0) {
+        return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan top up</p>';
     }
     
-    else if (tab === 'topup') {
-        const topupList = pendingTopUp.map(t => `
+    let html = `
+        <h4>💰 Permintaan Top Up (${pendingTopUp.length})</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Jumlah</th>
+                    <th>Catatan</th>
+                    <th>Bukti</th>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    pendingTopUp.forEach(t => {
+        html += `
             <tr>
                 <td>${t.id}</td>
                 <td>${t.username}</td>
                 <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
                 <td>${t.notes || '-'}</td>
+                <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
                 <td>
-                    <button class="btn-small" onclick="verifyTopUp('${t.id}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="verifyTopUp('${t.id}', false)">✕ Tolak</button>
+                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyTopUp('${t.id}', true)">✓ Setuju</button>
+                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyTopUp('${t.id}', false)">✕ Tolak</button>
                 </td>
             </tr>
-        `).join('');
-        
-        tabContent.innerHTML = `
-            <h4>💰 Permintaan Top Up (${pendingTopUp.length})</h4>
-            ${pendingTopUp.length > 0 ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Jumlah</th>
-                            <th>Catatan</th>
-                            <th>Waktu</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${topupList}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; padding: 20px;">Tidak ada permintaan top up</p>'}
         `;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+// Generate Tab Transfer
+function generateTransferTab() {
+    if (pendingTransfers.length === 0) {
+        return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan transfer</p>';
     }
     
-    else if (tab === 'transfer') {
-        const transferList = pendingTransfers.map(t => `
+    let html = `
+        <h4>↔️ Permintaan Transfer (${pendingTransfers.length})</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Dari</th>
+                    <th>Ke</th>
+                    <th>Jumlah</th>
+                    <th>Catatan</th>
+                    <th>Bukti</th>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    pendingTransfers.forEach(t => {
+        html += `
             <tr>
                 <td>${t.id}</td>
                 <td>${t.from}</td>
                 <td>${t.to}</td>
                 <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                <td>${t.notes || '-'}</td>
+                <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
                 <td>
-                    <button class="btn-small" onclick="verifyTransfer('${t.id}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="verifyTransfer('${t.id}', false)">✕ Tolak</button>
+                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyTransfer('${t.id}', true)">✓ Setuju</button>
+                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyTransfer('${t.id}', false)">✕ Tolak</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    return html;
+}
+
+// Generate Tab Users
+function generateUsersTab() {
+    const userList = Object.entries(demoUsers)
+        .filter(([username, user]) => user.role === 'user')
+        .map(([username, user]) => `
+            <tr>
+                <td>${username}</td>
+                <td>${user.name}</td>
+                <td>Rp ${user.balance.toLocaleString('id-ID')}</td>
+                <td>${user.kycStatus ? '<span class="badge success">Verified</span>' : '<span class="badge warning">Pending</span>'}</td>
+                <td>
+                    <button class="btn-small" onclick="showUserDetail('${username}')">Detail</button>
+                    <button class="btn-small" onclick="addSaldoManual('${username}')">Tambah Saldo</button>
                 </td>
             </tr>
         `).join('');
-        
-        tabContent.innerHTML = `
-            <h4>↔️ Permintaan Transfer (${pendingTransfers.length})</h4>
-            ${pendingTransfers.length > 0 ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Dari</th>
-                            <th>Ke</th>
-                            <th>Jumlah</th>
-                            <th>Waktu</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${transferList}
-                    </tbody>
-                </table>
-            ` : '<p style="text-align: center; padding: 20px;">Tidak ada permintaan transfer</p>'}
-        `;
-    }
-};
+    
+    return `
+        <h4>📋 Daftar Semua User (${Object.values(demoUsers).filter(u => u.role === 'user').length})</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Nama</th>
+                    <th>Saldo</th>
+                    <th>KYC</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${userList || '<tr><td colspan="5" style="text-align: center;">Tidak ada user</td></tr>'}
+            </tbody>
+        </table>
+    `;
+}
 
-// Verifikasi KYC
-window.verifyKYC = function(username, approve) {
-    const kycIndex = pendingKYC.findIndex(k => k.username === username);
-    if (kycIndex === -1) return;
+// Generate Tab History
+function generateHistoryTab() {
+    const allTransactions = transactions.map(t => {
+        if (t.type === 'topup') {
+            return `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>💰 Top Up</td>
+                    <td>-</td>
+                    <td>${t.to}</td>
+                    <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td><span class="badge success">Selesai</span></td>
+                    <td>${t.date}</td>
+                </tr>
+            `;
+        } else if (t.type === 'transfer') {
+            return `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>↔️ Transfer</td>
+                    <td>${t.from}</td>
+                    <td>${t.to}</td>
+                    <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td><span class="badge success">Selesai</span></td>
+                    <td>${t.date}</td>
+                </tr>
+            `;
+        } else if (t.type === 'kyc') {
+            return `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>📝 Verifikasi KYC</td>
+                    <td>${t.username}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><span class="badge success">${t.status}</span></td>
+                    <td>${t.date}</td>
+                </tr>
+            `;
+        }
+    }).join('');
     
-    if (approve) {
-        demoUsers[username].kycStatus = true;
-        showNotification(`KYC untuk ${username} disetujui`, 'success');
-    } else {
-        showNotification(`KYC untuk ${username} ditolak`, 'info');
-    }
-    
-    pendingKYC.splice(kycIndex, 1);
-    showAdminPanel();
-};
+    return `
+        <h4>📊 Riwayat Semua Transaksi</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipe</th>
+                    <th>Dari</th>
+                    <th>Ke</th>
+                    <th>Jumlah</th>
+                    <th>Status</th>
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allTransactions || '<tr><td colspan="7" style="text-align: center;">Belum ada transaksi</td></tr>'}
+            </tbody>
+        </table>
+    `;
+}
 
-// Verifikasi Top Up
-window.verifyTopUp = function(topupId, approve) {
-    const topupIndex = pendingTopUp.findIndex(t => t.id === topupId);
-    if (topupIndex === -1) return;
+// Fungsi untuk tab admin
+window.showAdminTab = function(tab) {
+    const tabContent = document.getElementById('adminTabContent');
     
-    const topup = pendingTopUp[topupIndex];
-    
-    if (approve) {
-        demoUsers[topup.username].balance += topup.amount;
-        
-        transactions.push({
-            id: topup.id,
-            to: topup.username,
-            amount: topup.amount,
-            type: 'topup',
-            status: 'completed',
-            date: new Date().toLocaleString(),
-            notes: topup.notes
-        });
-        
-        showNotification(`Top up Rp ${topup.amount.toLocaleString('id-ID')} untuk ${topup.username} disetujui`, 'success');
-    } else {
-        showNotification(`Top up untuk ${topup.username} ditolak`, 'info');
+    switch(tab) {
+        case 'kyc':
+            tabContent.innerHTML = generateKYCTab();
+            break;
+        case 'topup':
+            tabContent.innerHTML = generateTopUpTab();
+            break;
+        case 'transfer':
+            tabContent.innerHTML = generateTransferTab();
+            break;
+        case 'users':
+            tabContent.innerHTML = generateUsersTab();
+            break;
+        case 'history':
+            tabContent.innerHTML = generateHistoryTab();
+            break;
+        default:
+            tabContent.innerHTML = generateKYCTab();
     }
-    
-    pendingTopUp.splice(topupIndex, 1);
-    
-    // Update dashboard jika user yang sedang login adalah yang bersangkutan
-    if (currentUser === topup.username) {
-        balance = demoUsers[currentUser].balance;
-        updateDashboard();
-    }
-    
-    showAdminPanel();
 };
 
 // Fungsi helper untuk admin
 window.showUserDetail = function(username) {
     const user = demoUsers[username];
-    showNotification(`Detail ${user.name}: Saldo Rp ${user.balance.toLocaleString('id-ID')}`, 'info');
+    showNotification(`📋 ${user.name} - Saldo: Rp ${user.balance.toLocaleString('id-ID')} - KYC: ${user.kycStatus ? 'Verified' : 'Pending'}`, 'info');
 };
 
-window.addSaldo = function(username) {
+window.addSaldoManual = function(username) {
     const amount = prompt('Masukkan jumlah saldo yang ingin ditambahkan:', '100000');
     if (amount && !isNaN(amount) && parseInt(amount) > 0) {
         demoUsers[username].balance += parseInt(amount);
-        showNotification(`Saldo ${username} bertambah Rp ${parseInt(amount).toLocaleString('id-ID')}`, 'success');
+        showNotification(`✅ Saldo ${username} bertambah Rp ${parseInt(amount).toLocaleString('id-ID')}`, 'success');
         
         if (currentUser === username) {
             balance = demoUsers[currentUser].balance;
             updateDashboard();
         }
         
-        showAdminPanel();
+        // Refresh tab users
+        showAdminTab('users');
     }
 };
 
-// Tampilkan Riwayat Transaksi
+// Tampilkan Riwayat Transaksi (untuk user biasa)
 function showHistory() {
     const user = demoUsers[currentUser];
     
+    if (user.role === 'admin') {
+        showAdminPanel();
+        return;
+    }
+    
     // Filter transaksi untuk user ini
     const userTransactions = transactions.filter(t => 
-        (t.from === currentUser || t.to === currentUser) && 
-        (t.type !== 'admin' || user.role === 'admin')
+        (t.from === currentUser || t.to === currentUser)
     );
     
-    if (user.role === 'admin') {
-        // Admin melihat semua transaksi
-        const allTransactions = transactions.map(t => `
-            <tr>
-                <td>${t.id}</td>
-                <td>${t.type === 'topup' ? '💰 Top Up' : '↔️ Transfer'}</td>
-                <td>${t.from || '-'}</td>
-                <td>${t.to || '-'}</td>
-                <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-                <td><span class="badge success">${t.status}</span></td>
-                <td>${t.date}</td>
-            </tr>
-        `).join('');
-        
-        dynamicContent.innerHTML = `
-            <div class="content-card">
-                <h3>📊 Semua Transaksi</h3>
+    const userTransactionsList = userTransactions.map(t => {
+        if (t.type === 'topup') {
+            return `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>💰 Top Up</td>
+                    <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td><span class="badge success">Berhasil</span></td>
+                    <td>${t.date}</td>
+                </tr>
+            `;
+        } else {
+            return `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>↔️ Transfer ${t.from === currentUser ? 'Keluar' : 'Masuk'}</td>
+                    <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td><span class="badge success">Berhasil</span></td>
+                    <td>${t.date}</td>
+                </tr>
+            `;
+        }
+    }).join('');
+    
+    dynamicContent.innerHTML = `
+        <div class="content-card">
+            <h3>Riwayat Transaksi</h3>
+            ${userTransactions.length > 0 ? `
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Tipe</th>
-                            <th>Dari</th>
-                            <th>Ke</th>
                             <th>Jumlah</th>
                             <th>Status</th>
                             <th>Tanggal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${allTransactions || '<tr><td colspan="7" style="text-align: center;">Belum ada transaksi</td></tr>'}
+                        ${userTransactionsList}
                     </tbody>
                 </table>
-            </div>
-        `;
-    } else {
-        // User melihat transaksi sendiri
-        const userTransactionsList = userTransactions.map(t => {
-            if (t.type === 'topup') {
-                return `
-                    <tr>
-                        <td>${t.id}</td>
-                        <td>💰 Top Up</td>
-                        <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-                        <td><span class="badge success">Berhasil</span></td>
-                        <td>${t.date}</td>
-                    </tr>
-                `;
-            } else {
-                return `
-                    <tr>
-                        <td>${t.id}</td>
-                        <td>↔️ Transfer ${t.from === currentUser ? 'Keluar' : 'Masuk'}</td>
-                        <td>${t.from === currentUser ? `Ke ${t.to}` : `Dari ${t.from}`}</td>
-                        <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
-                        <td><span class="badge success">Berhasil</span></td>
-                        <td>${t.date}</td>
-                    </tr>
-                `;
-            }
-        }).join('');
-        
-        dynamicContent.innerHTML = `
-            <div class="content-card">
-                <h3>Riwayat Transaksi</h3>
-                ${userTransactions.length > 0 ? `
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tipe</th>
-                                <th>Keterangan</th>
-                                <th>Jumlah</th>
-                                <th>Status</th>
-                                <th>Tanggal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${userTransactionsList}
-                        </tbody>
-                    </table>
-                ` : '<p style="text-align: center; padding: 20px;">Belum ada transaksi</p>'}
-            </div>
-        `;
-    }
+            ` : '<p style="text-align: center; padding: 20px;">Belum ada transaksi</p>'}
+        </div>
+    `;
 }
 
 // Tampilkan Profil
@@ -1125,6 +1164,6 @@ function showProfile() {
 // Inisialisasi
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplikasi Dzal E-Wallet siap!');
-    console.log('Akun admin: dzalstore / 123456');  // Diperbarui
+    console.log('Akun admin: dzalstore / 123456');
     console.log('Akun demo: user1 / password123');
 });
