@@ -15,7 +15,7 @@ body {
 }
 
 .app-container {
-    max-width: 450px;
+    max-width: 500px;
     width: 100%;
     background: white;
     border-radius: 20px;
@@ -70,6 +70,7 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
+    font-weight: 500;
 }
 
 .btn-logout:hover {
@@ -94,6 +95,10 @@ body {
 .info-box p {
     margin: 5px 0;
     color: #1565c0;
+}
+
+.info-box strong {
+    color: #0d47a1;
 }
 
 .form-group {
@@ -140,11 +145,16 @@ body {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.3s;
+    transition: transform 0.3s, opacity 0.3s;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
 }
 
 .btn-secondary {
@@ -155,27 +165,39 @@ body {
     border: none;
     border-radius: 8px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e0e0e0;
 }
 
 .btn-small {
-    padding: 5px 10px;
+    padding: 6px 12px;
     background: #667eea;
     color: white;
     border: none;
     border-radius: 4px;
     font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
+    transition: opacity 0.3s;
+    margin: 2px;
 }
 
-.btn-danger {
-    background: #ff4757;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+.btn-small:hover {
+    opacity: 0.8;
+}
+
+.btn-small[style*="background: #28a745"] {
+    background: #28a745 !important;
+}
+
+.btn-small[style*="background: #ff4757"] {
+    background: #ff4757 !important;
 }
 
 /* Balance Card */
@@ -185,6 +207,7 @@ body {
     padding: 25px;
     color: white;
     margin-bottom: 20px;
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
 }
 
 .balance-label {
@@ -228,7 +251,7 @@ body {
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 25px;
 }
 
@@ -237,15 +260,20 @@ body {
     cursor: pointer;
     padding: 10px 5px;
     border-radius: 10px;
-    transition: background 0.3s;
+    transition: background 0.3s, transform 0.2s;
 }
 
 .menu-item:hover {
     background: #f5f5f5;
+    transform: translateY(-2px);
+}
+
+.menu-item:active {
+    transform: translateY(0);
 }
 
 .menu-icon {
-    font-size: 20px;
+    font-size: 22px;
     margin-bottom: 5px;
 }
 
@@ -253,6 +281,7 @@ body {
     font-size: 11px;
     color: #666;
     display: block;
+    font-weight: 500;
 }
 
 /* Notification Area */
@@ -263,30 +292,39 @@ body {
 .notification {
     background: #e3f2fd;
     border-left: 4px solid #2196f3;
-    padding: 12px;
+    padding: 12px 15px;
     border-radius: 8px;
     margin-bottom: 10px;
     font-size: 13px;
     position: relative;
     animation: slideIn 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .notification.success {
     background: #d4edda;
     border-left-color: #28a745;
+    color: #155724;
 }
 
 .notification.warning {
     background: #fff3cd;
     border-left-color: #ffc107;
+    color: #856404;
 }
 
 .notification .close-btn {
     position: absolute;
-    top: 5px;
-    right: 10px;
+    top: 8px;
+    right: 12px;
     cursor: pointer;
     color: #666;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.notification .close-btn:hover {
+    color: #333;
 }
 
 @keyframes slideIn {
@@ -304,16 +342,19 @@ body {
     border-radius: 10px;
     padding: 20px;
     border: 1px solid #eee;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .content-card h3 {
     margin-bottom: 15px;
     color: #333;
+    font-size: 18px;
 }
 
 .content-card h4 {
     margin: 15px 0 10px;
     color: #555;
+    font-size: 16px;
 }
 
 /* QRIS Section */
@@ -329,11 +370,13 @@ body {
     padding: 10px;
     background: white;
     margin: 0 auto 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .qris-image img {
     width: 100%;
     height: auto;
+    border-radius: 5px;
 }
 
 .qris-info {
@@ -341,6 +384,7 @@ body {
     padding: 15px;
     border-radius: 8px;
     margin: 15px 0;
+    color: #2e7d32;
 }
 
 /* Upload Section */
@@ -351,11 +395,12 @@ body {
     text-align: center;
     margin: 15px 0;
     cursor: pointer;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, background 0.3s;
 }
 
 .upload-area:hover {
     border-color: #667eea;
+    background: #f0f3ff;
 }
 
 .upload-area input[type="file"] {
@@ -364,11 +409,14 @@ body {
 
 .upload-label {
     color: #666;
+    font-size: 14px;
 }
 
 .upload-label span {
     color: #667eea;
     font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 /* Form Actions */
@@ -382,33 +430,44 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 15px;
     font-size: 13px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 table th {
     background: #667eea;
     color: white;
-    padding: 10px;
+    padding: 12px 8px;
     text-align: left;
+    font-weight: 600;
+    font-size: 12px;
 }
 
 table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+    padding: 10px 8px;
+    border-bottom: 1px solid #eee;
 }
 
 table tr:hover {
     background: #f5f5f5;
 }
 
+table tr:last-child td {
+    border-bottom: none;
+}
+
 /* Status Badges */
 .badge {
     display: inline-block;
-    padding: 3px 8px;
+    padding: 4px 8px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
+    text-align: center;
 }
 
 .badge.success {
@@ -439,10 +498,104 @@ table tr:hover {
     margin: 8px 0;
 }
 
+/* Admin Panel Stats */
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.stat-box {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.stat-box.blue {
+    background: #e3f2fd;
+}
+
+.stat-box.yellow {
+    background: #fff3cd;
+}
+
+.stat-box.red {
+    background: #f8d7da;
+}
+
+.stat-box.cyan {
+    background: #d1ecf1;
+}
+
+.stat-icon {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Create User Form */
+.create-user-form {
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.create-user-form input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 8px 12px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.tab-btn.active {
+    background: #667eea;
+    color: white;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .app-container {
         border-radius: 0;
+        min-height: 100vh;
     }
     
     .menu-grid {
@@ -450,10 +603,95 @@ table tr:hover {
     }
     
     .menu-icon {
-        font-size: 18px;
+        font-size: 20px;
     }
     
     .menu-item span {
+        font-size: 9px;
+    }
+    
+    table {
+        font-size: 11px;
+    }
+    
+    table th, table td {
+        padding: 8px 4px;
+    }
+    
+    .btn-small {
+        padding: 4px 8px;
         font-size: 10px;
     }
+    
+    .admin-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Loading Animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tooltip */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 10px;
+    background: #333;
+    color: white;
+    font-size: 11px;
+    border-radius: 4px;
+    white-space: nowrap;
+    display: none;
+    z-index: 10;
+}
+
+[data-tooltip]:hover:before {
+    display: block;
+}
+
+/* Modal (jika diperlukan) */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 90%;
 }
