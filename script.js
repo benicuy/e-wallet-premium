@@ -42,7 +42,10 @@ let transactions = [
         from: 'user2',
         to: 'user3',
         amount: 50000,
+        fee: 900,
+        total: 50900,
         type: 'transfer',
+        method: 'ewallet',
         status: 'completed',
         date: '2026-02-18 10:30',
         notes: 'Pembayaran utang'
@@ -52,6 +55,8 @@ let transactions = [
         from: 'dzalstore',
         to: 'user2',
         amount: 100000,
+        fee: 500,
+        total: 100500,
         type: 'topup',
         status: 'completed',
         date: '2026-02-17 14:20'
@@ -274,9 +279,12 @@ function showKYCForm() {
     });
 }
 
-// Tampilkan Form Top Up
+// ============================================
+// TOP UP DENGAN BIAYA ADMIN Rp 500
+// ============================================
 function showTopUpForm() {
     const user = demoUsers[currentUser];
+    const adminFee = 500; // Biaya admin top up Rp 500
     
     if (user.role === 'admin') {
         showNotification('Admin tidak perlu melakukan top up', 'info');
@@ -292,6 +300,14 @@ function showTopUpForm() {
         <div class="content-card">
             <h3>Top Up Saldo</h3>
             
+            <!-- Info Biaya Admin -->
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                <p style="font-weight: bold; color: #856404;">💰 Informasi Biaya Top Up</p>
+                <p style="color: #856404; margin-top: 5px;">• Biaya admin: <strong>Rp 500</strong> per transaksi</p>
+                <p style="color: #856404;">• Total yang harus dibayar = Jumlah Top Up + Rp 500</p>
+            </div>
+            
+            <!-- QRIS Dzal Store -->
             <div class="qris-container">
                 <div class="qris-image">
                     <img src="https://cdn.phototourl.com/uploads/2026-02-14-fa0f1899-4605-43bb-947b-27c76ee1a1e6.jpg" 
@@ -309,7 +325,14 @@ function showTopUpForm() {
             <form id="topupForm">
                 <div class="form-group">
                     <label>Jumlah Top Up</label>
-                    <input type="number" id="amount" min="1000" step="1000" placeholder="Minimal Rp 1.000" required>
+                    <input type="number" id="amount" min="10000" step="10000" placeholder="Minimal Rp 10.000" required oninput="updateTopUpTotal()">
+                </div>
+                
+                <!-- Total Pembayaran -->
+                <div id="totalContainer" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; display: none;">
+                    <p style="font-weight: bold; color: #1565c0;">💳 Total yang Harus Dibayar:</p>
+                    <p style="font-size: 24px; font-weight: bold; color: #0d47a1;" id="totalAmount">Rp 0</p>
+                    <p style="font-size: 12px; color: #666;">(Jumlah Top Up + Biaya Admin Rp 500)</p>
                 </div>
                 
                 <div class="upload-area" id="proofUploadArea">
@@ -334,7 +357,7 @@ function showTopUpForm() {
                 <p>⚠️ Instruksi:</p>
                 <ol style="margin-left: 20px;">
                     <li>Scan QRIS di atas menggunakan aplikasi pembayaran</li>
-                    <li>Lakukan pembayaran sesuai jumlah top up</li>
+                    <li>Lakukan pembayaran sesuai TOTAL yang harus dibayar</li>
                     <li>Screenshot bukti pembayaran</li>
                     <li>Upload bukti melalui form di atas</li>
                     <li>Admin akan memverifikasi dan menambahkan saldo</li>
@@ -342,6 +365,20 @@ function showTopUpForm() {
             </div>
         </div>
     `;
+    
+    // Fungsi untuk update total pembayaran
+    window.updateTopUpTotal = function() {
+        const amount = parseInt(document.getElementById('amount').value) || 0;
+        const total = amount + adminFee;
+        const totalContainer = document.getElementById('totalContainer');
+        
+        if (amount >= 10000) {
+            totalContainer.style.display = 'block';
+            document.getElementById('totalAmount').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        } else {
+            totalContainer.style.display = 'none';
+        }
+    };
     
     const uploadArea = document.getElementById('proofUploadArea');
     const proofFile = document.getElementById('proofFile');
@@ -357,12 +394,15 @@ function showTopUpForm() {
         e.preventDefault();
         
         const amount = parseInt(document.getElementById('amount').value);
+        const total = amount + adminFee;
         const notes = document.getElementById('notes').value;
         
         const topupRequest = {
             id: 'TOP' + Date.now(),
             username: currentUser,
-            amount: amount,
+            amount: amount, // Saldo yang akan ditambahkan
+            fee: adminFee,
+            total: total, // Total yang dibayar user
             notes: notes,
             status: 'pending',
             submittedAt: new Date().toLocaleString(),
@@ -371,12 +411,14 @@ function showTopUpForm() {
         
         pendingTopUp.push(topupRequest);
         
-        showNotification(`Permintaan top up Rp ${amount.toLocaleString('id-ID')} berhasil dikirim! Menunggu verifikasi admin.`, 'success');
+        showNotification(`Permintaan top up Rp ${amount.toLocaleString('id-ID')} berhasil dikirim! Total dibayar Rp ${total.toLocaleString('id-ID')} (termasuk biaya admin Rp 500). Menunggu verifikasi admin.`, 'success');
         dynamicContent.innerHTML = '';
     });
 }
 
-// Tampilkan Form Transfer
+// ============================================
+// TRANSFER DENGAN BIAYA ADMIN BERBEDA
+// ============================================
 function showTransferForm() {
     const user = demoUsers[currentUser];
     
@@ -404,6 +446,14 @@ function showTransferForm() {
                 <p class="balance-amount" style="font-size: 24px;">Rp ${balance.toLocaleString('id-ID')}</p>
             </div>
             
+            <!-- Info Biaya Admin -->
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                <p style="font-weight: bold; color: #856404;">💰 Informasi Biaya Transfer</p>
+                <p style="color: #856404; margin-top: 5px;">• Transfer ke Bank: <strong>Rp 3.000</strong></p>
+                <p style="color: #856404;">• Transfer ke E-Wallet: <strong>Rp 900</strong></p>
+                <p style="color: #856404; margin-top: 5px;">Total yang akan dipotong = Jumlah Transfer + Biaya Admin</p>
+            </div>
+            
             <form id="transferForm">
                 <div class="form-group">
                     <label>Tujuan Transfer</label>
@@ -414,8 +464,34 @@ function showTransferForm() {
                 </div>
                 
                 <div class="form-group">
+                    <label>Metode Transfer</label>
+                    <select id="transferMethod" required onchange="updateTransferFee()">
+                        <option value="">Pilih metode</option>
+                        <option value="bank">🏦 Transfer ke Bank (Rp 3.000)</option>
+                        <option value="ewallet">📱 Transfer ke E-Wallet (Rp 900)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nomor Rekening / E-Wallet</label>
+                    <input type="text" id="accountNumber" placeholder="Masukkan nomor tujuan" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Nama Penerima</label>
+                    <input type="text" id="accountName" placeholder="Masukkan nama penerima" required>
+                </div>
+                
+                <div class="form-group">
                     <label>Jumlah Transfer</label>
-                    <input type="number" id="transferAmount" min="1000" step="1000" placeholder="Minimal Rp 1.000" required>
+                    <input type="number" id="transferAmount" min="1000" step="1000" placeholder="Minimal Rp 1.000" required oninput="updateTransferTotal()">
+                </div>
+                
+                <!-- Total Pemotongan -->
+                <div id="totalTransferContainer" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; display: none;">
+                    <p style="font-weight: bold; color: #1565c0;">💰 Total yang akan dipotong:</p>
+                    <p style="font-size: 24px; font-weight: bold; color: #0d47a1;" id="totalTransferAmount">Rp 0</p>
+                    <p style="font-size: 12px; color: #666;" id="transferDetail">(Jumlah Transfer + Biaya Admin)</p>
                 </div>
                 
                 <div class="form-group">
@@ -440,13 +516,47 @@ function showTransferForm() {
                 <p>📌 Catatan Penting:</p>
                 <ul style="margin-left: 20px;">
                     <li>Transfer akan diproses setelah diverifikasi admin</li>
-                    <li>Pastikan saldo mencukupi sebelum transfer</li>
+                    <li>Pastikan saldo mencukupi untuk jumlah transfer + biaya admin</li>
                     <li>Bukti transfer akan dicek oleh admin</li>
                     <li>Dana akan dipotong dari saldo Anda setelah diverifikasi</li>
                 </ul>
             </div>
         </div>
     `;
+    
+    // Fungsi untuk update fee berdasarkan metode
+    window.updateTransferFee = function() {
+        const method = document.getElementById('transferMethod').value;
+        const amount = parseInt(document.getElementById('transferAmount').value) || 0;
+        
+        if (method && amount >= 1000) {
+            updateTransferTotal();
+        }
+    };
+    
+    // Fungsi untuk update total pemotongan
+    window.updateTransferTotal = function() {
+        const amount = parseInt(document.getElementById('transferAmount').value) || 0;
+        const method = document.getElementById('transferMethod').value;
+        
+        let fee = 0;
+        if (method === 'bank') {
+            fee = 3000;
+        } else if (method === 'ewallet') {
+            fee = 900;
+        }
+        
+        const total = amount + fee;
+        const totalContainer = document.getElementById('totalTransferContainer');
+        
+        if (amount >= 1000 && method) {
+            totalContainer.style.display = 'block';
+            document.getElementById('totalTransferAmount').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+            document.getElementById('transferDetail').textContent = `(Jumlah Transfer Rp ${amount.toLocaleString('id-ID')} + Biaya Admin Rp ${fee.toLocaleString('id-ID')})`;
+        } else {
+            totalContainer.style.display = 'none';
+        }
+    };
     
     const uploadArea = document.getElementById('transferUploadArea');
     const proofFile = document.getElementById('transferProof');
@@ -462,16 +572,42 @@ function showTransferForm() {
         e.preventDefault();
         
         const recipient = document.getElementById('recipient').value;
+        const method = document.getElementById('transferMethod').value;
+        const accountNumber = document.getElementById('accountNumber').value;
+        const accountName = document.getElementById('accountName').value;
         const amount = parseInt(document.getElementById('transferAmount').value);
         const notes = document.getElementById('transferNotes').value;
+        
+        let fee = 0;
+        let methodName = '';
+        
+        if (method === 'bank') {
+            fee = 3000;
+            methodName = 'Bank';
+        } else if (method === 'ewallet') {
+            fee = 900;
+            methodName = 'E-Wallet';
+        }
+        
+        const total = amount + fee;
         
         if (!recipient) {
             showNotification('Pilih tujuan transfer!', 'warning');
             return;
         }
         
-        if (amount > balance) {
-            showNotification('Saldo tidak mencukupi!', 'warning');
+        if (!method) {
+            showNotification('Pilih metode transfer!', 'warning');
+            return;
+        }
+        
+        if (!accountNumber || !accountName) {
+            showNotification('Isi data rekening penerima!', 'warning');
+            return;
+        }
+        
+        if (total > balance) {
+            showNotification(`Saldo tidak mencukupi! Dibutuhkan Rp ${total.toLocaleString('id-ID')} (transfer Rp ${amount.toLocaleString('id-ID')} + biaya Rp ${fee.toLocaleString('id-ID')})`, 'warning');
             return;
         }
         
@@ -480,6 +616,12 @@ function showTransferForm() {
             from: currentUser,
             to: recipient,
             amount: amount,
+            fee: fee,
+            total: total,
+            method: method,
+            methodName: methodName,
+            accountNumber: accountNumber,
+            accountName: accountName,
             notes: notes,
             status: 'pending',
             submittedAt: new Date().toLocaleString(),
@@ -488,11 +630,13 @@ function showTransferForm() {
         
         pendingTransfers.push(transferRequest);
         
-        balance -= amount;
+        // Kurangi saldo sementara (pending) - ini akan dipotong total
+        // Tapi untuk sementara kita kurangi saldo, nanti diverifikasi admin
+        balance -= total;
         demoUsers[currentUser].balance = balance;
         updateDashboard();
         
-        showNotification(`Permintaan transfer Rp ${amount.toLocaleString('id-ID')} ke ${recipient} berhasil dikirim! Menunggu verifikasi admin.`, 'success');
+        showNotification(`Permintaan transfer Rp ${amount.toLocaleString('id-ID')} ke ${recipient} berhasil dikirim! Total dipotong Rp ${total.toLocaleString('id-ID')} (termasuk biaya Rp ${fee.toLocaleString('id-ID')}). Menunggu verifikasi admin.`, 'success');
         dynamicContent.innerHTML = '';
     });
 }
@@ -506,19 +650,17 @@ window.toggleVerifyKYC = function(username, element) {
     const isApproved = element.checked;
     const statusSpan = element.closest('td').querySelector('.toggle-status');
     
-    // Cari index permintaan KYC
     const kycIndex = pendingKYC.findIndex(k => k.username === username);
     
     if (kycIndex === -1) {
         showNotification('Data KYC tidak ditemukan!', 'warning');
-        element.checked = !isApproved; // Balikkan lagi
+        element.checked = !isApproved;
         return;
     }
     
     const kycData = pendingKYC[kycIndex];
     
     if (isApproved) {
-        // Setujui KYC
         if (demoUsers[username]) {
             demoUsers[username].kycStatus = true;
             showNotification(`✅ KYC untuk ${username} (${kycData.name}) telah DISETUJUI`, 'success');
@@ -541,7 +683,6 @@ window.toggleVerifyKYC = function(username, element) {
             return;
         }
     } else {
-        // Tolak KYC
         showNotification(`❌ KYC untuk ${username} (${kycData.name}) telah DITOLAK`, 'info');
         
         if (statusSpan) {
@@ -550,17 +691,14 @@ window.toggleVerifyKYC = function(username, element) {
         }
     }
     
-    // Hapus dari daftar pending setelah 2 detik (biar user lihat perubahannya)
     setTimeout(() => {
         pendingKYC.splice(kycIndex, 1);
         
-        // Update dashboard jika user yang sedang login adalah yang bersangkutan
         if (currentUser === username) {
             isKYCVerified = demoUsers[username].kycStatus;
             updateDashboard();
         }
         
-        // Refresh panel admin
         if (currentUser === 'dzalstore') {
             showAdminPanel();
         }
@@ -582,21 +720,23 @@ window.toggleVerifyTopUp = function(topupId, element) {
     const topup = pendingTopUp[topupIndex];
     
     if (isApproved) {
-        // Top up disetujui
         if (demoUsers[topup.username]) {
+            // Tambahkan saldo (tanpa biaya admin, karena biaya admin sudah dibayar terpisah)
             demoUsers[topup.username].balance += topup.amount;
             
             transactions.push({
                 id: topup.id,
                 to: topup.username,
                 amount: topup.amount,
+                fee: topup.fee,
+                total: topup.total,
                 type: 'topup',
                 status: 'completed',
                 date: new Date().toLocaleString(),
                 notes: topup.notes
             });
             
-            showNotification(`✅ Top up Rp ${topup.amount.toLocaleString('id-ID')} untuk ${topup.username} DISETUJUI`, 'success');
+            showNotification(`✅ Top up Rp ${topup.amount.toLocaleString('id-ID')} untuk ${topup.username} DISETUJUI (Biaya admin Rp ${topup.fee.toLocaleString('id-ID')})`, 'success');
             
             if (statusSpan) {
                 statusSpan.textContent = 'Disetujui';
@@ -608,7 +748,6 @@ window.toggleVerifyTopUp = function(topupId, element) {
             return;
         }
     } else {
-        // Top up ditolak
         showNotification(`❌ Top up untuk ${topup.username} DITOLAK`, 'info');
         
         if (statusSpan) {
@@ -646,7 +785,6 @@ window.toggleVerifyTransfer = function(transferId, element) {
     const transfer = pendingTransfers[transferIndex];
     
     if (isApproved) {
-        // Transfer disetujui
         const fromUser = demoUsers[transfer.from];
         const toUser = demoUsers[transfer.to];
         
@@ -656,27 +794,40 @@ window.toggleVerifyTransfer = function(transferId, element) {
             return;
         }
         
-        if (fromUser.balance < transfer.amount) {
+        // Validasi saldo masih cukup (termasuk fee)
+        if (fromUser.balance < transfer.total) {
             showNotification(`Saldo ${transfer.from} tidak mencukupi!`, 'warning');
             element.checked = false;
             return;
         }
         
-        fromUser.balance -= transfer.amount;
+        // Proses transfer (potong total termasuk fee)
+        fromUser.balance -= transfer.total;
         toUser.balance += transfer.amount;
+        
+        // Fee masuk ke admin (saldo admin bertambah)
+        if (demoUsers['dzalstore']) {
+            demoUsers['dzalstore'].balance += transfer.fee;
+        }
         
         transactions.push({
             id: transfer.id,
             from: transfer.from,
             to: transfer.to,
             amount: transfer.amount,
+            fee: transfer.fee,
+            total: transfer.total,
+            method: transfer.method,
+            methodName: transfer.methodName,
             type: 'transfer',
             status: 'completed',
             date: new Date().toLocaleString(),
-            notes: transfer.notes
+            notes: transfer.notes,
+            accountNumber: transfer.accountNumber,
+            accountName: transfer.accountName
         });
         
-        showNotification(`✅ Transfer Rp ${transfer.amount.toLocaleString('id-ID')} dari ${transfer.from} ke ${transfer.to} DISETUJUI`, 'success');
+        showNotification(`✅ Transfer Rp ${transfer.amount.toLocaleString('id-ID')} dari ${transfer.from} ke ${transfer.to} DISETUJUI (Biaya admin Rp ${transfer.fee.toLocaleString('id-ID')})`, 'success');
         
         if (statusSpan) {
             statusSpan.textContent = 'Disetujui';
@@ -691,8 +842,8 @@ window.toggleVerifyTransfer = function(transferId, element) {
         // Transfer ditolak, kembalikan saldo
         const fromUser = demoUsers[transfer.from];
         if (fromUser) {
-            fromUser.balance += transfer.amount;
-            showNotification(`❌ Transfer ditolak, saldo dikembalikan ke ${transfer.from}`, 'info');
+            fromUser.balance += transfer.total;
+            showNotification(`❌ Transfer ditolak, saldo Rp ${transfer.total.toLocaleString('id-ID')} dikembalikan ke ${transfer.from}`, 'info');
             
             if (statusSpan) {
                 statusSpan.textContent = 'Ditolak';
@@ -716,7 +867,7 @@ window.toggleVerifyTransfer = function(transferId, element) {
 };
 
 // ============================================
-// PANEL ADMIN LENGKAP DENGAN TOGGLE SWITCH
+// PANEL ADMIN LENGKAP
 // ============================================
 
 // Tampilkan Panel Admin
@@ -725,6 +876,7 @@ function showAdminPanel() {
     const pendingKYCCount = pendingKYC.length;
     const pendingTopUpCount = pendingTopUp.length;
     const pendingTransferCount = pendingTransfers.length;
+    const adminBalance = demoUsers['dzalstore']?.balance || 0;
     
     dynamicContent.innerHTML = `
         <div class="content-card">
@@ -751,6 +903,20 @@ function showAdminPanel() {
                     <div class="stat-icon">↔️</div>
                     <div class="stat-value">${pendingTransferCount}</div>
                     <div class="stat-label">Pending Transfer</div>
+                </div>
+            </div>
+            
+            <!-- Saldo Admin & Info Biaya -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 15px; border-radius: 8px; color: white;">
+                    <p style="font-size: 12px; opacity: 0.9;">Saldo Admin</p>
+                    <p style="font-size: 20px; font-weight: bold;">Rp ${adminBalance.toLocaleString('id-ID')}</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <p style="font-size: 12px; font-weight: bold;">💰 Biaya Admin:</p>
+                    <p style="font-size: 11px;">Top Up: Rp 500</p>
+                    <p style="font-size: 11px;">Transfer Bank: Rp 3.000</p>
+                    <p style="font-size: 11px;">Transfer E-Wallet: Rp 900</p>
                 </div>
             </div>
             
@@ -879,6 +1045,8 @@ function generateTopUpTab() {
                         <th>ID</th>
                         <th>User</th>
                         <th>Jumlah</th>
+                        <th>Biaya</th>
+                        <th>Total</th>
                         <th>Catatan</th>
                         <th>Bukti</th>
                         <th>Waktu</th>
@@ -895,6 +1063,8 @@ function generateTopUpTab() {
                 <td>${t.id}</td>
                 <td>${t.username}</td>
                 <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                <td>Rp ${t.fee.toLocaleString('id-ID')}</td>
+                <td>Rp ${t.total.toLocaleString('id-ID')}</td>
                 <td>${t.notes || '-'}</td>
                 <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
@@ -930,7 +1100,11 @@ function generateTransferTab() {
                         <th>ID</th>
                         <th>Dari</th>
                         <th>Ke</th>
+                        <th>Metode</th>
+                        <th>Rekening</th>
                         <th>Jumlah</th>
+                        <th>Biaya</th>
+                        <th>Total</th>
                         <th>Catatan</th>
                         <th>Bukti</th>
                         <th>Waktu</th>
@@ -947,7 +1121,11 @@ function generateTransferTab() {
                 <td>${t.id}</td>
                 <td>${t.from}</td>
                 <td>${t.to}</td>
+                <td>${t.methodName || t.method}</td>
+                <td>${t.accountNumber || '-'}<br><small>${t.accountName || ''}</small></td>
                 <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                <td>Rp ${t.fee.toLocaleString('id-ID')}</td>
+                <td>Rp ${t.total.toLocaleString('id-ID')}</td>
                 <td>${t.notes || '-'}</td>
                 <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
@@ -1017,6 +1195,8 @@ function generateHistoryTab() {
                     <td>-</td>
                     <td>${t.to}</td>
                     <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td>Rp ${t.fee?.toLocaleString('id-ID') || '-'}</td>
+                    <td>Rp ${t.total?.toLocaleString('id-ID') || t.amount.toLocaleString('id-ID')}</td>
                     <td><span class="badge success">Selesai</span></td>
                     <td>${t.date}</td>
                 </tr>
@@ -1025,10 +1205,12 @@ function generateHistoryTab() {
             return `
                 <tr>
                     <td>${t.id}</td>
-                    <td>↔️ Transfer</td>
+                    <td>↔️ Transfer (${t.methodName || t.method})</td>
                     <td>${t.from}</td>
                     <td>${t.to}</td>
                     <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td>Rp ${t.fee?.toLocaleString('id-ID') || '-'}</td>
+                    <td>Rp ${t.total?.toLocaleString('id-ID') || t.amount.toLocaleString('id-ID')}</td>
                     <td><span class="badge success">Selesai</span></td>
                     <td>${t.date}</td>
                 </tr>
@@ -1039,6 +1221,8 @@ function generateHistoryTab() {
                     <td>${t.id}</td>
                     <td>📝 Verifikasi KYC</td>
                     <td>${t.username}</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>-</td>
                     <td>-</td>
                     <td><span class="badge success">${t.status}</span></td>
@@ -1059,12 +1243,14 @@ function generateHistoryTab() {
                         <th>Dari</th>
                         <th>Ke</th>
                         <th>Jumlah</th>
+                        <th>Biaya</th>
+                        <th>Total</th>
                         <th>Status</th>
                         <th>Tanggal</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${allTransactions || '<tr><td colspan="7" style="text-align: center;">Belum ada transaksi</td></tr>'}
+                    ${allTransactions || '<tr><td colspan="9" style="text-align: center;">Belum ada transaksi</td></tr>'}
                 </tbody>
             </table>
         </div>
@@ -1073,7 +1259,6 @@ function generateHistoryTab() {
 
 // Fungsi untuk tab admin
 window.showAdminTab = function(tab) {
-    // Update active tab
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -1143,6 +1328,8 @@ function showHistory() {
                     <td>${t.id}</td>
                     <td>💰 Top Up</td>
                     <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td>Rp ${t.fee?.toLocaleString('id-ID') || '-'}</td>
+                    <td>Rp ${t.total?.toLocaleString('id-ID') || t.amount.toLocaleString('id-ID')}</td>
                     <td><span class="badge success">Berhasil</span></td>
                     <td>${t.date}</td>
                 </tr>
@@ -1153,6 +1340,8 @@ function showHistory() {
                     <td>${t.id}</td>
                     <td>↔️ Transfer ${t.from === currentUser ? 'Keluar' : 'Masuk'}</td>
                     <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td>Rp ${t.fee?.toLocaleString('id-ID') || '-'}</td>
+                    <td>Rp ${t.total?.toLocaleString('id-ID') || t.amount.toLocaleString('id-ID')}</td>
                     <td><span class="badge success">Berhasil</span></td>
                     <td>${t.date}</td>
                 </tr>
@@ -1171,6 +1360,8 @@ function showHistory() {
                                 <th>ID</th>
                                 <th>Tipe</th>
                                 <th>Jumlah</th>
+                                <th>Biaya</th>
+                                <th>Total</th>
                                 <th>Status</th>
                                 <th>Tanggal</th>
                             </tr>
@@ -1208,4 +1399,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplikasi Dzal E-Wallet siap!');
     console.log('Akun admin: dzalstore / 123456');
     console.log('Akun demo: user1 / password123');
+    console.log('Biaya Admin: Top Up Rp 500, Transfer Bank Rp 3.000, Transfer E-Wallet Rp 900');
 });
