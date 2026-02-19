@@ -32,6 +32,13 @@ const demoUsers = {
         kycStatus: false,
         balance: 50000,
         role: 'user'
+    },
+    'user4': {
+        password: 'user9',
+        name: 'benigg',
+        kycStatus: true,
+        balance: 0,
+        role: 'user'
     }
 };
 
@@ -1399,5 +1406,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplikasi Dzal E-Wallet siap!');
     console.log('Akun admin: dzalstore / 123456');
     console.log('Akun demo: user1 / password123');
+    console.log('akun demo: benigg / user9');
     console.log('Biaya Admin: Top Up Rp 500, Transfer Bank Rp 3.000, Transfer E-Wallet Rp 900');
 });
