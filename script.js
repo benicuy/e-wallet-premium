@@ -379,7 +379,7 @@ function showTopUpForm() {
         const total = amount + adminFee;
         const totalContainer = document.getElementById('totalContainer');
         
-        if (amount >= 10000) {
+        if (amount >= 1000) {
             totalContainer.style.display = 'block';
             document.getElementById('totalAmount').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         } else {
