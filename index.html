@@ -11,13 +11,12 @@
         <!-- HALAMAN LOGIN -->
         <div id="loginPage" class="page active">
             <div class="header">
-                <h1>E-Wallet</h1>
+                <h1>Premium Wallet</h1>
                 <p class="subtitle">Premium E-Wallet</p>
             </div>
             <div class="form-container">
                 <div class="info-box">
                     <p>⚠️ Akun hanya bisa dibuat oleh admin</p>
-                    <p>⚠️ masukan akun yang sudah di beli di admin</p>
                 </div>
                 <form id="loginForm">
                     <div class="form-group">
@@ -36,7 +35,7 @@
         <!-- HALAMAN DASHBOARD -->
         <div id="dashboardPage" class="page">
             <div class="header">
-                <h1>Dzal Wallet</h1>
+                <h1>Premium Wallet</h1>
                 <button id="logoutBtn" class="btn-logout">Logout</button>
             </div>
             
@@ -61,6 +60,10 @@
                     <div class="menu-icon">💰</div>
                     <span>Top Up</span>
                 </div>
+                <div class="menu-item" id="transferMenu">
+                    <div class="menu-icon">↔️</div>
+                    <span>Transfer</span>
+                </div>
                 <div class="menu-item" id="historyMenu">
                     <div class="menu-icon">📊</div>
                     <span>Riwayat</span>
@@ -70,6 +73,9 @@
                     <span>Profil</span>
                 </div>
             </div>
+
+            <!-- Notifikasi -->
+            <div id="notificationArea" class="notification-area"></div>
 
             <!-- Konten Dinamis -->
             <div id="dynamicContent" class="dynamic-content"></div>
