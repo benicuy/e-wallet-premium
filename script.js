@@ -1132,6 +1132,6 @@ function showProfile() {
 // Inisialisasi
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplikasi Dzal E-Wallet siap!');
-    console.log('Akun demo: dzalstorepremium / 123456');
+    console.log('Akun demo: dzalstore / 123456');
     console.log('Akun demo: user1 / password123');
 });
