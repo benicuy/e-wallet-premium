@@ -1,13 +1,8 @@
-// State Aplikasi
-let currentUser = null;
-let isKYCVerified = false;
-let balance = 0;
-
 // Data User Demo (simulasi akun yang dibuat admin)
 const demoUsers = {
-    'admin': {
-        password: '123456',
-        name: 'dzalstore',
+    'dzalstore': {  // Diubah dari 'admin' menjadi 'dzalstore'
+        password: '123456',  // Diubah dari 'admin123' menjadi '123456'
+        name: 'Dzal Store Admin',
         kycStatus: true,
         balance: 1000000,
         role: 'admin'
@@ -34,7 +29,6 @@ const demoUsers = {
         role: 'user'
     }
 };
-
 // Database Transaksi (untuk simulasi)
 let transactions = [
     {
@@ -49,7 +43,7 @@ let transactions = [
     },
     {
         id: 'TRX002',
-        from: 'admin',
+        from: 'dzalstore',  // Diubah dari 'admin'
         to: 'user2',
         amount: 100000,
         type: 'topup',
@@ -57,7 +51,6 @@ let transactions = [
         date: '2026-02-17 14:20'
     }
 ];
-
 // Database Permintaan (pending requests)
 let pendingKYC = [];
 let pendingTopUp = [];
@@ -1132,6 +1125,6 @@ function showProfile() {
 // Inisialisasi
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Aplikasi Dzal E-Wallet siap!');
-    console.log('Akun demo: dzalstore / 123456');
+    console.log('Akun admin: dzalstore / 123456');  // Diperbarui
     console.log('Akun demo: user1 / password123');
 });
