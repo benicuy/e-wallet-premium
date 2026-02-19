@@ -15,7 +15,7 @@ const demoUsers = {
     'user1': {
         password: 'password123',
         name: 'Budi Santoso',
-        kycStatus: false,
+        kycStatus: true,
         balance: 0,
         role: 'user'
     },
