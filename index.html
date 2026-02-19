@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Wallet Premium</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HALAMAN LOGIN -->
+        <div id="loginPage" class="page active">
+            <div class="header">
+                <h1>E-Wallet</h1>
+                <p class="subtitle">Premium E-Wallet</p>
+            </div>
+            <div class="form-container">
+                <div class="info-box">
+                    <p>⚠️ Akun hanya bisa dibuat oleh admin</p>
+                    <p>⚠️ masukan akun yang sudah di beli di admin</p>
+                </div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Masukkan username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Masukkan password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- HALAMAN DASHBOARD -->
+        <div id="dashboardPage" class="page">
+            <div class="header">
+                <h1>Dzal Wallet</h1>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+            
+            <!-- Saldo Card -->
+            <div class="balance-card">
+                <p class="balance-label">Saldo Anda</p>
+                <p class="balance-amount" id="balanceAmount">Rp 0</p>
+            </div>
+
+            <!-- Status KYC -->
+            <div id="kycStatus" class="kyc-status warning">
+                <span id="kycStatusText">⚠️ Menunggu Verifikasi KYC</span>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="menu-grid">
+                <div class="menu-item" id="kycMenu">
+                    <div class="menu-icon">📋</div>
+                    <span>Verifikasi KYC</span>
+                </div>
+                <div class="menu-item" id="topupMenu">
+                    <div class="menu-icon">💰</div>
+                    <span>Top Up</span>
+                </div>
+                <div class="menu-item" id="historyMenu">
+                    <div class="menu-icon">📊</div>
+                    <span>Riwayat</span>
+                </div>
+                <div class="menu-item" id="profileMenu">
+                    <div class="menu-icon">👤</div>
+                    <span>Profil</span>
+                </div>
+            </div>
+
+            <!-- Konten Dinamis -->
+            <div id="dynamicContent" class="dynamic-content"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
