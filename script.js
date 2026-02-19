@@ -332,7 +332,7 @@ function showTopUpForm() {
             <form id="topupForm">
                 <div class="form-group">
                     <label>Jumlah Top Up</label>
-                    <input type="number" id="amount" min="10000" step="10000" placeholder="Minimal Rp 10.000" required oninput="updateTopUpTotal()">
+                    <input type="number" id="amount" min="1000" step="1000" placeholder="Minimal Rp 1.000" required oninput="updateTopUpTotal()">
                 </div>
                 
                 <!-- Total Pembayaran -->
