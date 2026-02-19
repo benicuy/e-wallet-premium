@@ -192,14 +192,6 @@ body {
     opacity: 0.8;
 }
 
-.btn-small[style*="background: #28a745"] {
-    background: #28a745 !important;
-}
-
-.btn-small[style*="background: #ff4757"] {
-    background: #ff4757 !important;
-}
-
 /* Balance Card */
 .balance-card {
     background: linear-gradient(135deg, #667eea, #764ba2);
@@ -357,6 +349,128 @@ body {
     font-size: 16px;
 }
 
+/* ====================================
+   TOGGLE SWITCH STYLES 
+   ==================================== */
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.toggle-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 120px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    margin: 0 10px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ff4757;
+    transition: 0.3s;
+    border-radius: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "✕";
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    color: #ff4757;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+    background-color: #28a745;
+}
+
+input:checked + .toggle-slider:before {
+    content: "✓";
+    transform: translateX(30px);
+    color: #28a745;
+}
+
+/* Toggle Switch Kecil untuk tabel */
+.toggle-switch-sm {
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch-sm .toggle-slider:before {
+    height: 18px;
+    width: 18px;
+    font-size: 10px;
+    line-height: 18px;
+    content: "✕";
+}
+
+.toggle-switch-sm input:checked + .toggle-slider:before {
+    content: "✓";
+    transform: translateX(26px);
+}
+
+/* Toggle Switch untuk setiap baris di tabel */
+.toggle-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Status text */
+.toggle-status {
+    margin-left: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 50px;
+}
+
+.toggle-status.approve {
+    color: #28a745;
+}
+
+.toggle-status.reject {
+    color: #ff4757;
+}
+
+/* ==================================== */
+
 /* QRIS Section */
 .qris-container {
     text-align: center;
@@ -427,6 +541,11 @@ body {
 }
 
 /* Tables */
+.table-container {
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -448,8 +567,9 @@ table th {
 }
 
 table td {
-    padding: 10px 8px;
+    padding: 12px 8px;
     border-bottom: 1px solid #eee;
+    vertical-align: middle;
 }
 
 table tr:hover {
@@ -483,19 +603,6 @@ table tr:last-child td {
 .badge.info {
     background: #e3f2fd;
     color: #1565c0;
-}
-
-/* Transfer Summary */
-.transfer-summary {
-    background: white;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 15px 0;
-    border: 1px solid #eee;
-}
-
-.transfer-summary p {
-    margin: 8px 0;
 }
 
 /* Admin Panel Stats */
@@ -626,72 +733,13 @@ table tr:last-child td {
     .admin-stats {
         grid-template-columns: repeat(2, 1fr);
     }
-}
-
-/* Loading Animation */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Tooltip */
-[data-tooltip] {
-    position: relative;
-    cursor: help;
-}
-
-[data-tooltip]:before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 5px 10px;
-    background: #333;
-    color: white;
-    font-size: 11px;
-    border-radius: 4px;
-    white-space: nowrap;
-    display: none;
-    z-index: 10;
-}
-
-[data-tooltip]:hover:before {
-    display: block;
-}
-
-/* Modal (jika diperlukan) */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    max-width: 400px;
-    width: 90%;
+    
+    .toggle-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .toggle-switch {
+        margin: 10px 0;
+    }
 }
