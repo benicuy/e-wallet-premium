@@ -13,7 +13,7 @@ const demoUsers = {
     },
     'admin': {
         password: 'admin123',
-        name: 'Admin Dzal',
+        name: 'AdminDzal',
         kycStatus: true,
         balance: 1000000
     }
