@@ -6,8 +6,8 @@ let balance = 0;
 // Data User Demo (simulasi akun yang dibuat admin)
 const demoUsers = {
     'admin': {
-        password: 'admin123',
-        name: 'Admin Dzal',
+        password: '123456',
+        name: 'dzalstore',
         kycStatus: true,
         balance: 1000000,
         role: 'admin'
