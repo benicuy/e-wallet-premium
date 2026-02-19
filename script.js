@@ -97,37 +97,27 @@ function handleLogin(e) {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
     
-    // Validasi input tidak kosong
     if (!username || !password) {
         showNotification('Username dan password harus diisi!', 'warning');
         return;
     }
     
-    // Cek apakah username ada di database demo
     if (demoUsers.hasOwnProperty(username)) {
         const user = demoUsers[username];
         
-        // Verifikasi password
         if (user.password === password) {
-            // Login berhasil
             currentUser = username;
             isKYCVerified = user.kycStatus;
             balance = user.balance;
             
-            // Update UI
             updateDashboard();
-            
-            // Tampilkan pesan selamat datang
             showNotification(`Selamat datang ${user.name}`, 'success');
             
-            // Pindah ke dashboard
             loginPage.classList.remove('active');
             dashboardPage.classList.add('active');
             
-            // Reset form login
             document.getElementById('loginForm').reset();
             
-            // Cek pending requests untuk admin
             if (user.role === 'admin') {
                 checkPendingRequests();
             }
@@ -150,10 +140,8 @@ function handleLogout() {
 
 // Update Dashboard
 function updateDashboard() {
-    // Update saldo
     balanceAmount.textContent = `Rp ${balance.toLocaleString('id-ID')}`;
     
-    // Update status KYC berdasarkan role
     if (demoUsers[currentUser].role === 'admin') {
         kycStatus.className = 'kyc-status success';
         kycStatusText.textContent = '👑 Admin Dzal Store';
@@ -178,7 +166,6 @@ function showNotification(message, type = 'info') {
     `;
     notificationArea.appendChild(notification);
     
-    // Auto hide after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.remove();
@@ -198,13 +185,11 @@ function checkPendingRequests() {
 function showKYCForm() {
     const user = demoUsers[currentUser];
     
-    // Jika admin, tampilkan panel admin
     if (user.role === 'admin') {
         showAdminPanel();
         return;
     }
     
-    // Untuk user biasa
     if (isKYCVerified) {
         dynamicContent.innerHTML = `
             <div class="content-card">
@@ -259,7 +244,6 @@ function showKYCForm() {
         </div>
     `;
     
-    // Event listener untuk upload area
     const uploadArea = document.getElementById('uploadArea');
     const ktpFile = document.getElementById('ktpFile');
     
@@ -270,7 +254,6 @@ function showKYCForm() {
         }
     });
     
-    // Handle form KYC
     document.getElementById('kycForm').addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -295,7 +278,6 @@ function showKYCForm() {
 function showTopUpForm() {
     const user = demoUsers[currentUser];
     
-    // Cek role
     if (user.role === 'admin') {
         showNotification('Admin tidak perlu melakukan top up', 'info');
         return;
@@ -310,7 +292,6 @@ function showTopUpForm() {
         <div class="content-card">
             <h3>Top Up Saldo</h3>
             
-            <!-- QRIS Dzal Store -->
             <div class="qris-container">
                 <div class="qris-image">
                     <img src="https://cdn.phototourl.com/uploads/2026-02-14-fa0f1899-4605-43bb-947b-27c76ee1a1e6.jpg" 
@@ -362,7 +343,6 @@ function showTopUpForm() {
         </div>
     `;
     
-    // Event listener untuk upload area
     const uploadArea = document.getElementById('proofUploadArea');
     const proofFile = document.getElementById('proofFile');
     
@@ -373,7 +353,6 @@ function showTopUpForm() {
         }
     });
     
-    // Handle form top up
     document.getElementById('topupForm').addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -411,7 +390,6 @@ function showTransferForm() {
         return;
     }
     
-    // Dapatkan daftar user lain untuk tujuan transfer
     const otherUsers = Object.entries(demoUsers)
         .filter(([username, u]) => username !== currentUser && u.role === 'user')
         .map(([username, u]) => `<option value="${username}">${u.name} (${username})</option>`)
@@ -470,7 +448,6 @@ function showTransferForm() {
         </div>
     `;
     
-    // Event listener untuk upload area
     const uploadArea = document.getElementById('transferUploadArea');
     const proofFile = document.getElementById('transferProof');
     
@@ -481,7 +458,6 @@ function showTransferForm() {
         }
     });
     
-    // Handle form transfer
     document.getElementById('transferForm').addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -494,7 +470,6 @@ function showTransferForm() {
             return;
         }
         
-        // Validasi saldo
         if (amount > balance) {
             showNotification('Saldo tidak mencukupi!', 'warning');
             return;
@@ -513,7 +488,6 @@ function showTransferForm() {
         
         pendingTransfers.push(transferRequest);
         
-        // Kurangi saldo sementara (pending)
         balance -= amount;
         demoUsers[currentUser].balance = balance;
         updateDashboard();
@@ -524,30 +498,31 @@ function showTransferForm() {
 }
 
 // ============================================
-// FUNGSI VERIFIKASI UNTUK ADMIN (CENTANG / SILANG)
+// FUNGSI VERIFIKASI DENGAN TOGGLE SWITCH
 // ============================================
 
-// Verifikasi KYC
-window.verifyKYC = function(username, approve) {
-    console.log('Verifying KYC for:', username, 'Approve:', approve);
+// Verifikasi KYC dengan Toggle
+window.toggleVerifyKYC = function(username, element) {
+    const isApproved = element.checked;
+    const statusSpan = element.closest('td').querySelector('.toggle-status');
     
     // Cari index permintaan KYC
     const kycIndex = pendingKYC.findIndex(k => k.username === username);
     
     if (kycIndex === -1) {
         showNotification('Data KYC tidak ditemukan!', 'warning');
+        element.checked = !isApproved; // Balikkan lagi
         return;
     }
     
     const kycData = pendingKYC[kycIndex];
     
-    if (approve) {
+    if (isApproved) {
         // Setujui KYC
         if (demoUsers[username]) {
             demoUsers[username].kycStatus = true;
             showNotification(`✅ KYC untuk ${username} (${kycData.name}) telah DISETUJUI`, 'success');
             
-            // Catat ke transaksi
             transactions.push({
                 id: 'KYC' + Date.now(),
                 type: 'kyc',
@@ -555,41 +530,58 @@ window.verifyKYC = function(username, approve) {
                 status: 'approved',
                 date: new Date().toLocaleString()
             });
+            
+            if (statusSpan) {
+                statusSpan.textContent = 'Disetujui';
+                statusSpan.className = 'toggle-status approve';
+            }
         } else {
             showNotification(`User ${username} tidak ditemukan!`, 'warning');
+            element.checked = false;
             return;
         }
     } else {
         // Tolak KYC
         showNotification(`❌ KYC untuk ${username} (${kycData.name}) telah DITOLAK`, 'info');
+        
+        if (statusSpan) {
+            statusSpan.textContent = 'Ditolak';
+            statusSpan.className = 'toggle-status reject';
+        }
     }
     
-    // Hapus dari daftar pending
-    pendingKYC.splice(kycIndex, 1);
-    
-    // Refresh panel admin
-    showAdminPanel();
-    
-    // Update dashboard jika user yang sedang login adalah yang bersangkutan
-    if (currentUser === username) {
-        isKYCVerified = demoUsers[username].kycStatus;
-        updateDashboard();
-    }
+    // Hapus dari daftar pending setelah 2 detik (biar user lihat perubahannya)
+    setTimeout(() => {
+        pendingKYC.splice(kycIndex, 1);
+        
+        // Update dashboard jika user yang sedang login adalah yang bersangkutan
+        if (currentUser === username) {
+            isKYCVerified = demoUsers[username].kycStatus;
+            updateDashboard();
+        }
+        
+        // Refresh panel admin
+        if (currentUser === 'dzalstore') {
+            showAdminPanel();
+        }
+    }, 2000);
 };
 
-// Verifikasi Top Up
-window.verifyTopUp = function(topupId, approve) {
-    console.log('Verifying Top Up:', topupId, 'Approve:', approve);
+// Verifikasi Top Up dengan Toggle
+window.toggleVerifyTopUp = function(topupId, element) {
+    const isApproved = element.checked;
+    const statusSpan = element.closest('td').querySelector('.toggle-status');
     
     const topupIndex = pendingTopUp.findIndex(t => t.id === topupId);
     if (topupIndex === -1) {
         showNotification('Data top up tidak ditemukan!', 'warning');
+        element.checked = !isApproved;
         return;
     }
     
     const topup = pendingTopUp[topupIndex];
     
-    if (approve) {
+    if (isApproved) {
         // Top up disetujui
         if (demoUsers[topup.username]) {
             demoUsers[topup.username].balance += topup.amount;
@@ -605,59 +597,74 @@ window.verifyTopUp = function(topupId, approve) {
             });
             
             showNotification(`✅ Top up Rp ${topup.amount.toLocaleString('id-ID')} untuk ${topup.username} DISETUJUI`, 'success');
+            
+            if (statusSpan) {
+                statusSpan.textContent = 'Disetujui';
+                statusSpan.className = 'toggle-status approve';
+            }
         } else {
             showNotification(`User ${topup.username} tidak ditemukan!`, 'warning');
+            element.checked = false;
             return;
         }
     } else {
         // Top up ditolak
         showNotification(`❌ Top up untuk ${topup.username} DITOLAK`, 'info');
+        
+        if (statusSpan) {
+            statusSpan.textContent = 'Ditolak';
+            statusSpan.className = 'toggle-status reject';
+        }
     }
     
-    pendingTopUp.splice(topupIndex, 1);
-    
-    // Update dashboard jika user yang sedang login adalah yang bersangkutan
-    if (currentUser === topup.username) {
-        balance = demoUsers[currentUser].balance;
-        updateDashboard();
-    }
-    
-    showAdminPanel();
+    setTimeout(() => {
+        pendingTopUp.splice(topupIndex, 1);
+        
+        if (currentUser === topup.username) {
+            balance = demoUsers[currentUser].balance;
+            updateDashboard();
+        }
+        
+        if (currentUser === 'dzalstore') {
+            showAdminPanel();
+        }
+    }, 2000);
 };
 
-// Verifikasi Transfer
-window.verifyTransfer = function(transferId, approve) {
-    console.log('Verifying Transfer:', transferId, 'Approve:', approve);
+// Verifikasi Transfer dengan Toggle
+window.toggleVerifyTransfer = function(transferId, element) {
+    const isApproved = element.checked;
+    const statusSpan = element.closest('td').querySelector('.toggle-status');
     
     const transferIndex = pendingTransfers.findIndex(t => t.id === transferId);
     if (transferIndex === -1) {
         showNotification('Data transfer tidak ditemukan!', 'warning');
+        element.checked = !isApproved;
         return;
     }
     
     const transfer = pendingTransfers[transferIndex];
     
-    if (approve) {
+    if (isApproved) {
         // Transfer disetujui
         const fromUser = demoUsers[transfer.from];
         const toUser = demoUsers[transfer.to];
         
         if (!fromUser || !toUser) {
             showNotification('User pengirim atau penerima tidak ditemukan!', 'warning');
+            element.checked = false;
             return;
         }
         
-        // Validasi saldo masih cukup
         if (fromUser.balance < transfer.amount) {
             showNotification(`Saldo ${transfer.from} tidak mencukupi!`, 'warning');
+            element.checked = false;
             return;
         }
         
-        // Proses transfer
         fromUser.balance -= transfer.amount;
         toUser.balance += transfer.amount;
         
-        // Catat transaksi
         transactions.push({
             id: transfer.id,
             from: transfer.from,
@@ -671,7 +678,11 @@ window.verifyTransfer = function(transferId, approve) {
         
         showNotification(`✅ Transfer Rp ${transfer.amount.toLocaleString('id-ID')} dari ${transfer.from} ke ${transfer.to} DISETUJUI`, 'success');
         
-        // Update dashboard jika yang login adalah pengirim atau penerima
+        if (statusSpan) {
+            statusSpan.textContent = 'Disetujui';
+            statusSpan.className = 'toggle-status approve';
+        }
+        
         if (currentUser === transfer.from || currentUser === transfer.to) {
             balance = demoUsers[currentUser].balance;
             updateDashboard();
@@ -683,6 +694,11 @@ window.verifyTransfer = function(transferId, approve) {
             fromUser.balance += transfer.amount;
             showNotification(`❌ Transfer ditolak, saldo dikembalikan ke ${transfer.from}`, 'info');
             
+            if (statusSpan) {
+                statusSpan.textContent = 'Ditolak';
+                statusSpan.className = 'toggle-status reject';
+            }
+            
             if (currentUser === transfer.from) {
                 balance = fromUser.balance;
                 updateDashboard();
@@ -690,72 +706,72 @@ window.verifyTransfer = function(transferId, approve) {
         }
     }
     
-    // Hapus dari pending
-    pendingTransfers.splice(transferIndex, 1);
-    
-    // Refresh panel
-    showAdminPanel();
+    setTimeout(() => {
+        pendingTransfers.splice(transferIndex, 1);
+        
+        if (currentUser === 'dzalstore') {
+            showAdminPanel();
+        }
+    }, 2000);
 };
 
 // ============================================
-// PANEL ADMIN LENGKAP
+// PANEL ADMIN LENGKAP DENGAN TOGGLE SWITCH
 // ============================================
 
 // Tampilkan Panel Admin
 function showAdminPanel() {
-    // Hitung statistik
     const totalUsers = Object.keys(demoUsers).length;
     const pendingKYCCount = pendingKYC.length;
     const pendingTopUpCount = pendingTopUp.length;
     const pendingTransferCount = pendingTransfers.length;
-    const totalBalance = Object.values(demoUsers).reduce((sum, user) => sum + user.balance, 0);
     
     dynamicContent.innerHTML = `
         <div class="content-card">
             <h3>👑 Admin Dzal Store</h3>
             
             <!-- Statistik -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0;">
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 20px;">👥</div>
-                    <div style="font-weight: bold;">${totalUsers}</div>
-                    <div style="font-size: 11px;">Total Users</div>
+            <div class="admin-stats">
+                <div class="stat-box blue">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">${totalUsers}</div>
+                    <div class="stat-label">Total Users</div>
                 </div>
-                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 20px;">📝</div>
-                    <div style="font-weight: bold;">${pendingKYCCount}</div>
-                    <div style="font-size: 11px;">Pending KYC</div>
+                <div class="stat-box yellow">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-value">${pendingKYCCount}</div>
+                    <div class="stat-label">Pending KYC</div>
                 </div>
-                <div style="background: #f8d7da; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 20px;">💰</div>
-                    <div style="font-weight: bold;">${pendingTopUpCount}</div>
-                    <div style="font-size: 11px;">Pending Top Up</div>
+                <div class="stat-box red">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value">${pendingTopUpCount}</div>
+                    <div class="stat-label">Pending Top Up</div>
                 </div>
-                <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; text-align: center;">
-                    <div style="font-size: 20px;">↔️</div>
-                    <div style="font-weight: bold;">${pendingTransferCount}</div>
-                    <div style="font-size: 11px;">Pending Transfer</div>
+                <div class="stat-box cyan">
+                    <div class="stat-icon">↔️</div>
+                    <div class="stat-value">${pendingTransferCount}</div>
+                    <div class="stat-label">Pending Transfer</div>
                 </div>
             </div>
             
             <!-- Form Buat Akun Baru -->
-            <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <div class="create-user-form">
                 <h4>➕ Buat Akun User Baru</h4>
-                <form id="createUserForm" style="display: grid; gap: 10px; margin-top: 10px;">
-                    <input type="text" id="newUsername" placeholder="Username" style="padding: 8px;" required>
-                    <input type="password" id="newPassword" placeholder="Password" style="padding: 8px;" required>
-                    <input type="text" id="newName" placeholder="Nama Lengkap" style="padding: 8px;" required>
+                <form id="createUserForm">
+                    <input type="text" id="newUsername" placeholder="Username" required>
+                    <input type="password" id="newPassword" placeholder="Password" required>
+                    <input type="text" id="newName" placeholder="Nama Lengkap" required>
                     <button type="submit" class="btn-primary" style="padding: 8px;">Buat Akun</button>
                 </form>
             </div>
             
             <!-- Tab Navigation -->
-            <div style="display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; flex-wrap: wrap;">
-                <button class="btn-small" onclick="showAdminTab('kyc')">📝 KYC (${pendingKYCCount})</button>
-                <button class="btn-small" onclick="showAdminTab('topup')">💰 Top Up (${pendingTopUpCount})</button>
-                <button class="btn-small" onclick="showAdminTab('transfer')">↔️ Transfer (${pendingTransferCount})</button>
-                <button class="btn-small" onclick="showAdminTab('users')">📋 Semua User</button>
-                <button class="btn-small" onclick="showAdminTab('history')">📊 Riwayat</button>
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showAdminTab('kyc')">📝 KYC (${pendingKYCCount})</button>
+                <button class="tab-btn" onclick="showAdminTab('topup')">💰 Top Up (${pendingTopUpCount})</button>
+                <button class="tab-btn" onclick="showAdminTab('transfer')">↔️ Transfer (${pendingTransferCount})</button>
+                <button class="tab-btn" onclick="showAdminTab('users')">📋 Semua User</button>
+                <button class="tab-btn" onclick="showAdminTab('history')">📊 Riwayat</button>
             </div>
             
             <!-- Konten Tab (default KYC) -->
@@ -765,7 +781,6 @@ function showAdminPanel() {
         </div>
     `;
     
-    // Handle form create user
     document.getElementById('createUserForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -774,13 +789,11 @@ function showAdminPanel() {
         const newName = document.getElementById('newName').value.trim();
         
         if (newUsername && newPassword && newName) {
-            // Cek apakah username sudah ada
             if (demoUsers.hasOwnProperty(newUsername)) {
                 showNotification('Username sudah digunakan!', 'warning');
                 return;
             }
             
-            // Tambah user baru
             demoUsers[newUsername] = {
                 password: newPassword,
                 name: newName,
@@ -791,12 +804,10 @@ function showAdminPanel() {
             
             showNotification(`✅ Akun user "${newUsername}" berhasil dibuat!`, 'success');
             
-            // Reset form
             document.getElementById('newUsername').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('newName').value = '';
             
-            // Refresh panel admin
             showAdminPanel();
         } else {
             showNotification('Semua field harus diisi!', 'warning');
@@ -804,7 +815,7 @@ function showAdminPanel() {
     });
 }
 
-// Generate Tab KYC
+// Generate Tab KYC dengan Toggle Switch
 function generateKYCTab() {
     if (pendingKYC.length === 0) {
         return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan KYC</p>';
@@ -812,18 +823,20 @@ function generateKYCTab() {
     
     let html = `
         <h4>📝 Permintaan Verifikasi KYC (${pendingKYC.length})</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Nama</th>
-                    <th>NIK</th>
-                    <th>Alamat</th>
-                    <th>Waktu</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Nama</th>
+                        <th>NIK</th>
+                        <th>Alamat</th>
+                        <th>Waktu</th>
+                        <th>Verifikasi</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
     
     pendingKYC.forEach(k => {
@@ -834,19 +847,24 @@ function generateKYCTab() {
                 <td>${k.nik}</td>
                 <td>${k.address.substring(0, 20)}...</td>
                 <td>${k.submittedAt}</td>
+                <td class="toggle-cell">
+                    <label class="toggle-switch toggle-switch-sm">
+                        <input type="checkbox" onchange="toggleVerifyKYC('${k.username}', this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </td>
                 <td>
-                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyKYC('${k.username}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyKYC('${k.username}', false)">✕ Tolak</button>
+                    <span class="toggle-status">Pending</span>
                 </td>
             </tr>
         `;
     });
     
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
 }
 
-// Generate Tab Top Up
+// Generate Tab Top Up dengan Toggle Switch
 function generateTopUpTab() {
     if (pendingTopUp.length === 0) {
         return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan top up</p>';
@@ -854,19 +872,21 @@ function generateTopUpTab() {
     
     let html = `
         <h4>💰 Permintaan Top Up (${pendingTopUp.length})</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User</th>
-                    <th>Jumlah</th>
-                    <th>Catatan</th>
-                    <th>Bukti</th>
-                    <th>Waktu</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Jumlah</th>
+                        <th>Catatan</th>
+                        <th>Bukti</th>
+                        <th>Waktu</th>
+                        <th>Verifikasi</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
     
     pendingTopUp.forEach(t => {
@@ -878,19 +898,24 @@ function generateTopUpTab() {
                 <td>${t.notes || '-'}</td>
                 <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
+                <td class="toggle-cell">
+                    <label class="toggle-switch toggle-switch-sm">
+                        <input type="checkbox" onchange="toggleVerifyTopUp('${t.id}', this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </td>
                 <td>
-                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyTopUp('${t.id}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyTopUp('${t.id}', false)">✕ Tolak</button>
+                    <span class="toggle-status">Pending</span>
                 </td>
             </tr>
         `;
     });
     
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
 }
 
-// Generate Tab Transfer
+// Generate Tab Transfer dengan Toggle Switch
 function generateTransferTab() {
     if (pendingTransfers.length === 0) {
         return '<p style="text-align: center; padding: 20px;">Tidak ada permintaan transfer</p>';
@@ -898,20 +923,22 @@ function generateTransferTab() {
     
     let html = `
         <h4>↔️ Permintaan Transfer (${pendingTransfers.length})</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Dari</th>
-                    <th>Ke</th>
-                    <th>Jumlah</th>
-                    <th>Catatan</th>
-                    <th>Bukti</th>
-                    <th>Waktu</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Dari</th>
+                        <th>Ke</th>
+                        <th>Jumlah</th>
+                        <th>Catatan</th>
+                        <th>Bukti</th>
+                        <th>Waktu</th>
+                        <th>Verifikasi</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
     
     pendingTransfers.forEach(t => {
@@ -924,15 +951,20 @@ function generateTransferTab() {
                 <td>${t.notes || '-'}</td>
                 <td>${t.proofFile}</td>
                 <td>${t.submittedAt}</td>
+                <td class="toggle-cell">
+                    <label class="toggle-switch toggle-switch-sm">
+                        <input type="checkbox" onchange="toggleVerifyTransfer('${t.id}', this)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </td>
                 <td>
-                    <button class="btn-small" style="background: #28a745;" onclick="window.verifyTransfer('${t.id}', true)">✓ Setuju</button>
-                    <button class="btn-small" style="background: #ff4757;" onclick="window.verifyTransfer('${t.id}', false)">✕ Tolak</button>
+                    <span class="toggle-status">Pending</span>
                 </td>
             </tr>
         `;
     });
     
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     return html;
 }
 
@@ -955,20 +987,22 @@ function generateUsersTab() {
     
     return `
         <h4>📋 Daftar Semua User (${Object.values(demoUsers).filter(u => u.role === 'user').length})</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Nama</th>
-                    <th>Saldo</th>
-                    <th>KYC</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${userList || '<tr><td colspan="5" style="text-align: center;">Tidak ada user</td></tr>'}
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Nama</th>
+                        <th>Saldo</th>
+                        <th>KYC</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${userList || '<tr><td colspan="5" style="text-align: center;">Tidak ada user</td></tr>'}
+                </tbody>
+            </table>
+        </div>
     `;
 }
 
@@ -1016,27 +1050,35 @@ function generateHistoryTab() {
     
     return `
         <h4>📊 Riwayat Semua Transaksi</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tipe</th>
-                    <th>Dari</th>
-                    <th>Ke</th>
-                    <th>Jumlah</th>
-                    <th>Status</th>
-                    <th>Tanggal</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${allTransactions || '<tr><td colspan="7" style="text-align: center;">Belum ada transaksi</td></tr>'}
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipe</th>
+                        <th>Dari</th>
+                        <th>Ke</th>
+                        <th>Jumlah</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${allTransactions || '<tr><td colspan="7" style="text-align: center;">Belum ada transaksi</td></tr>'}
+                </tbody>
+            </table>
+        </div>
     `;
 }
 
 // Fungsi untuk tab admin
 window.showAdminTab = function(tab) {
+    // Update active tab
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
     const tabContent = document.getElementById('adminTabContent');
     
     switch(tab) {
@@ -1077,7 +1119,6 @@ window.addSaldoManual = function(username) {
             updateDashboard();
         }
         
-        // Refresh tab users
         showAdminTab('users');
     }
 };
@@ -1091,7 +1132,6 @@ function showHistory() {
         return;
     }
     
-    // Filter transaksi untuk user ini
     const userTransactions = transactions.filter(t => 
         (t.from === currentUser || t.to === currentUser)
     );
@@ -1124,20 +1164,22 @@ function showHistory() {
         <div class="content-card">
             <h3>Riwayat Transaksi</h3>
             ${userTransactions.length > 0 ? `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tipe</th>
-                            <th>Jumlah</th>
-                            <th>Status</th>
-                            <th>Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${userTransactionsList}
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipe</th>
+                                <th>Jumlah</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${userTransactionsList}
+                        </tbody>
+                    </table>
+                </div>
             ` : '<p style="text-align: center; padding: 20px;">Belum ada transaksi</p>'}
         </div>
     `;
